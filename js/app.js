@@ -65,6 +65,9 @@ function init() {
   buildColorPicker();
   buildIconPicker();
 
+  // Render immediately with empty data so the page isn't blank
+  renderAll();
+
   subscribeToRoutines((r) => {
     routines = r;
     renderAll();
