@@ -156,22 +156,15 @@ function updateQuestPath() {
   checkpointsEl.innerHTML = '';
 
   let completedWeeks = 0;
-  let goldCoins = 0;
 
   weeks.forEach((w, i) => {
     const cp = document.createElement('div');
     cp.className = 'checkpoint';
 
-    const threshold = Math.ceil(w.expected / 2);
-    const isCompleted = w.expected > 0 && w.completed >= threshold;
-    const isGold = w.expected > 0 && w.completed >= w.expected;
+    // A week is completed only when ALL expected routines are done (100%)
+    const isCompleted = w.expected > 0 && w.completed >= w.expected;
 
     if (isCompleted) { cp.classList.add('completed'); completedWeeks++; }
-    if (isGold) { cp.classList.add('has-gold'); goldCoins++; }
-
-    const coinDiv = document.createElement('div');
-    coinDiv.className = 'checkpoint-coin';
-    cp.appendChild(coinDiv);
 
     const node = document.createElement('div');
     node.className = 'checkpoint-node';
@@ -186,7 +179,13 @@ function updateQuestPath() {
     checkpointsEl.appendChild(cp);
   });
 
+  // Gold coin only when ALL weeks of the month are fully completed
+  const weeksWithWork = weeks.filter(w => w.expected > 0).length;
+  const goldCoins = (weeksWithWork > 0 && completedWeeks >= weeksWithWork) ? 1 : 0;
   goldCountEl.textContent = goldCoins;
+
+  const questSection = document.getElementById('quest-section');
+  questSection.classList.toggle('has-gold', goldCoins > 0);
 
   requestAnimationFrame(() => {
     const totalCp = weeks.length;

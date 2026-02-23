@@ -83,9 +83,29 @@ header {
   gap: 14px;
 }
 .logo {
-  font-size: 1.4rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.logo-icon {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  background: var(--accent);
+  border-radius: 7px;
+  box-shadow: 0 2px 8px rgba(124,111,247,0.35);
+}
+.logo-icon svg {
+  width: 18px;
+  height: 18px;
+}
+.logo-text {
+  font-size: 1.3rem;
   font-weight: 700;
-  color: var(--accent-bright);
+  color: var(--text-primary);
   letter-spacing: -0.5px;
 }
 .tabs {
@@ -256,18 +276,32 @@ main {
 .checkpoint.completed .checkpoint-label {
   color: var(--text-secondary);
 }
-.checkpoint-coin {
-  position: absolute;
-  top: -16px;
-  width: 13px;
-  height: 13px;
-  background: radial-gradient(circle at 38% 32%, var(--gold-bright), var(--gold));
-  border-radius: 50%;
-  border: 1.5px solid var(--gold-dim);
-  box-shadow: 0 0 8px rgba(212,168,67,0.5);
-  display: none;
+.quest-section.has-gold {
+  border-color: var(--gold-dim);
+  box-shadow: 0 0 20px rgba(212,168,67,0.15);
 }
-.checkpoint.has-gold .checkpoint-coin { display: block; }
+
+/* Quest Lore */
+.quest-lore {
+  margin-top: 14px;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+  font-style: italic;
+  text-align: center;
+  padding: 0 8px;
+}
+.quest-lore strong {
+  color: var(--gold);
+  font-style: normal;
+  font-weight: 600;
+}
+.quest-lore-name {
+  color: #6bba62;
+  font-style: normal;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
 
 .quest-avatar {
   position: absolute;
