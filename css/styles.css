@@ -1,0 +1,454 @@
+/* ========== VARIABLES ========== */
+:root {
+  --bg-primary: #0f1117;
+  --bg-secondary: #1a1c25;
+  --bg-tertiary: #242733;
+  --bg-card: #1e2030;
+  --text-primary: #e2e4ea;
+  --text-secondary: #8b8fa3;
+  --text-muted: #4e5266;
+  --accent: #7c6ff7;
+  --accent-bright: #9b8fff;
+  --border: #2a2d3e;
+  --green: #34d399;
+  --red: #f87171;
+  --font: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+}
+
+/* ========== RESET ========== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: var(--font);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ========== SYNC INDICATOR ========== */
+.sync-indicator {
+  position: fixed;
+  top: 10px;
+  right: 16px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  z-index: 50;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.sync-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--text-muted);
+}
+.sync-dot.synced { background: var(--green); box-shadow: 0 0 6px var(--green); }
+.sync-dot.syncing { background: var(--accent); }
+.sync-dot.error { background: var(--red); box-shadow: 0 0 6px var(--red); }
+.sync-label { font-weight: 500; }
+
+/* ========== HEADER ========== */
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-secondary);
+}
+.logo {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--accent-bright);
+  letter-spacing: -0.5px;
+}
+.tabs {
+  display: flex;
+  gap: 4px;
+  background: var(--bg-primary);
+  padding: 3px;
+  border-radius: 8px;
+}
+.tab {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 6px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.tab:hover { color: var(--text-primary); }
+.tab.active {
+  background: var(--accent);
+  color: #fff;
+}
+
+/* ========== TAB CONTENT ========== */
+main { max-width: 960px; margin: 0 auto; padding: 20px 16px; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+/* ========== MONTH NAV ========== */
+.month-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.month-nav button {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+}
+.month-nav button:hover { background: var(--border); }
+#month-label {
+  font-size: 16px;
+  font-weight: 600;
+  min-width: 180px;
+  text-align: center;
+}
+
+/* ========== LEGEND ========== */
+.calendar-legend {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+.legend-dot {
+  width: 22px;
+  height: 22px;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+}
+.legend-label { font-weight: 500; }
+
+/* ========== CALENDAR GRID ========== */
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+.cal-header {
+  text-align: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  padding: 8px 0;
+}
+.cal-cell {
+  background: var(--bg-secondary);
+  border-radius: 6px;
+  min-height: 80px;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  transition: background 0.15s;
+}
+.cal-cell:hover { background: var(--bg-tertiary); }
+.cal-cell.empty { background: transparent; }
+.cal-cell.today {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+.cal-day-num {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+.cal-cell.today .cal-day-num { color: var(--accent-bright); }
+
+/* ========== CALENDAR CHECKS ========== */
+.cal-checks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  margin-top: auto;
+}
+.cal-check {
+  width: 26px;
+  height: 26px;
+  border-radius: 5px;
+  border: 2px solid;
+  background: transparent;
+  cursor: pointer;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+  color: var(--text-secondary);
+  padding: 0;
+}
+.cal-check:hover { transform: scale(1.1); }
+.cal-check.done {
+  color: #fff;
+  font-weight: 700;
+  font-size: 13px;
+}
+
+/* ========== ROUTINES TAB ========== */
+.routines-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+.routines-header h2 {
+  font-size: 18px;
+  font-weight: 700;
+}
+.btn-add {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.btn-add:hover { background: var(--accent-bright); }
+
+/* ========== ROUTINE CARDS ========== */
+.routines-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.routine-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-left: 4px solid;
+  border-radius: 8px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.routine-card:hover { background: var(--bg-tertiary); }
+.routine-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+.routine-info { flex: 1; min-width: 0; }
+.routine-name {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+.routine-desc {
+  font-size: 12px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.routine-freq {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--accent-bright);
+  background: rgba(124, 111, 247, 0.15);
+  padding: 3px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.routines-empty {
+  text-align: center;
+  padding: 48px 16px;
+  color: var(--text-muted);
+}
+.routines-empty p { font-size: 14px; margin-top: 8px; }
+.routines-empty .empty-icon { font-size: 32px; }
+
+/* ========== MODAL ========== */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(4px);
+  z-index: 100;
+  align-items: center;
+  justify-content: center;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px;
+  width: 90%;
+  max-width: 420px;
+  position: relative;
+}
+.modal-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 20px;
+  cursor: pointer;
+}
+.modal-close:hover { color: var(--text-primary); }
+.modal h3 {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 16px;
+}
+
+/* ========== FORM ========== */
+#routine-form label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+  margin-top: 12px;
+}
+#routine-form label:first-of-type { margin-top: 0; }
+#routine-form input[type="text"],
+#routine-form input[type="number"],
+#routine-form textarea {
+  width: 100%;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-family: var(--font);
+  font-size: 14px;
+  padding: 8px 10px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+#routine-form input:focus,
+#routine-form textarea:focus { border-color: var(--accent); }
+#routine-form textarea { resize: vertical; }
+
+/* ========== COLOR PICKER ========== */
+.color-picker {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+.color-swatch {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.color-swatch:hover { transform: scale(1.1); }
+.color-swatch.selected { border-color: #fff; box-shadow: 0 0 0 2px var(--accent); }
+
+/* ========== ICON PICKER ========== */
+.icon-picker {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+.icon-option {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  border: 2px solid var(--border);
+  background: var(--bg-primary);
+  cursor: pointer;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+}
+.icon-option:hover { border-color: var(--text-muted); }
+.icon-option.selected { border-color: var(--accent); background: var(--bg-tertiary); }
+
+/* ========== MODAL ACTIONS ========== */
+.modal-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+  gap: 8px;
+}
+.btn-save {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 24px;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-left: auto;
+  transition: background 0.15s;
+}
+.btn-save:hover { background: var(--accent-bright); }
+.btn-delete {
+  background: transparent;
+  color: var(--red);
+  border: 1px solid var(--red);
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.btn-delete:hover { background: rgba(248,113,113,0.1); }
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 640px) {
+  header { flex-direction: column; gap: 12px; padding: 12px 16px; }
+  main { padding: 12px 8px; }
+  .cal-cell { min-height: 60px; padding: 4px; }
+  .cal-check { width: 20px; height: 20px; font-size: 9px; }
+  .cal-check.done { font-size: 10px; }
+  .cal-day-num { font-size: 10px; }
+  .routine-desc { display: none; }
+  .modal { padding: 16px; }
+}

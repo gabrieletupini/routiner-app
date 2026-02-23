@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Routiner</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <div class="sync-indicator">
+    <span class="sync-dot" id="sync-dot"></span>
+    <span class="sync-label" id="sync-label">Connecting...</span>
+  </div>
+
+  <header>
+    <h1 class="logo">Routiner</h1>
+    <nav class="tabs">
+      <button class="tab active" data-tab="calendar">Calendar</button>
+      <button class="tab" data-tab="routines">Routines</button>
+    </nav>
+  </header>
+
+  <main>
+    <!-- CALENDAR TAB -->
+    <section id="tab-calendar" class="tab-content active">
+      <div class="month-nav">
+        <button id="prev-month" aria-label="Previous month">&larr;</button>
+        <span id="month-label"></span>
+        <button id="next-month" aria-label="Next month">&rarr;</button>
+      </div>
+      <div class="calendar-legend" id="calendar-legend"></div>
+      <div class="calendar-grid" id="calendar-grid"></div>
+    </section>
+
+    <!-- ROUTINES TAB -->
+    <section id="tab-routines" class="tab-content">
+      <div class="routines-header">
+        <h2>My Routines</h2>
+        <button id="add-routine-btn" class="btn-add">+ Add Routine</button>
+      </div>
+      <div class="routines-list" id="routines-list"></div>
+
+      <!-- Add/Edit Routine Modal -->
+      <div class="modal-overlay" id="routine-modal">
+        <div class="modal">
+          <button class="modal-close" id="routine-modal-close">&times;</button>
+          <h3 id="routine-modal-title">New Routine</h3>
+          <form id="routine-form">
+            <input type="hidden" id="routine-id">
+
+            <label for="routine-name">Name</label>
+            <input type="text" id="routine-name" placeholder="e.g. Dental Routine" required>
+
+            <label for="routine-description">Description</label>
+            <textarea id="routine-description" placeholder="Brush teeth, floss, mouthwash..." rows="3"></textarea>
+
+            <label for="routine-times">Times per week</label>
+            <input type="number" id="routine-times" min="1" max="7" value="7" required>
+
+            <label>Color</label>
+            <div class="color-picker" id="color-picker"></div>
+
+            <label>Icon</label>
+            <div class="icon-picker" id="icon-picker"></div>
+
+            <div class="modal-actions">
+              <button type="button" class="btn-delete" id="routine-delete-btn" style="display:none;">Delete</button>
+              <button type="submit" class="btn-save">Save</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
