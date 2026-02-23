@@ -3,7 +3,7 @@ import {
   subscribeToRoutines, createRoutine, updateRoutine, deleteRoutine,
   subscribeToCompletions, toggleCompletion
 } from './firebase.js';
-import { renderCalendar, renderLegend, getMonthLabel } from './calendar.js';
+import { renderCalendar, renderLegend, getMonthLabel, computeWeeklyProgress } from './calendar.js';
 
 const COLORS = [
   '#7c6ff7', '#3b82f6', '#06b6d4', '#34d399', '#a3e635',
@@ -22,8 +22,8 @@ let completions = {};
 let unsubCompletions = null;
 
 // ---- DOM refs ----
-const syncDot = document.getElementById('sync-dot');
-const syncLabel = document.getElementById('sync-label');
+const syncIndicator = document.getElementById('sync-indicator');
+const syncLabelEl = document.getElementById('sync-label');
 const calGrid = document.getElementById('calendar-grid');
 const calLegend = document.getElementById('calendar-legend');
 const monthLabel = document.getElementById('month-label');
@@ -34,9 +34,15 @@ const routineModalTitle = document.getElementById('routine-modal-title');
 const routineDeleteBtn = document.getElementById('routine-delete-btn');
 const colorPicker = document.getElementById('color-picker');
 const iconPicker = document.getElementById('icon-picker');
+const dayPicker = document.getElementById('day-picker');
+const questAvatar = document.getElementById('quest-avatar');
+const pathFill = document.getElementById('path-fill');
+const checkpointsEl = document.getElementById('checkpoints');
+const goldCountEl = document.getElementById('gold-count');
 
 let selectedColor = COLORS[0];
 let selectedIcon = ICONS[0];
+let selectedDays = [0, 1, 2, 3, 4, 5, 6]; // all days by default
 
 // ---- Init ----
 function init() {
@@ -46,47 +52,46 @@ function init() {
   currentYear = now.getFullYear();
   currentMonth = now.getMonth();
 
-  onSyncStatus(handleSyncStatus);
+  let connected = false;
+  onSyncStatus((status) => {
+    connected = true;
+    handleSyncStatus(status);
+  });
 
   setupTabs();
   setupMonthNav();
   setupModal();
+  setupDayPicker();
   buildColorPicker();
   buildIconPicker();
 
-  // Subscribe to routines (always active)
   subscribeToRoutines((r) => {
     routines = r;
     renderAll();
   });
 
-  // Subscribe to completions for current month
   subscribeMonth();
 
-  // Initial sync indicator
   handleSyncStatus('connecting');
   setTimeout(() => {
-    if (syncLabel && syncLabel.textContent === 'Connecting...') {
-      handleSyncStatus('error');
-    }
+    if (!connected) handleSyncStatus('error');
   }, 8000);
 }
 
 // ---- Sync status ----
 function handleSyncStatus(status) {
-  if (!syncDot || !syncLabel) return;
-  syncDot.className = 'sync-dot';
+  if (!syncIndicator || !syncLabelEl) return;
+  syncIndicator.className = 'sync-indicator';
   if (status === 'synced') {
-    syncDot.classList.add('synced');
-    syncLabel.textContent = 'Synced';
+    syncIndicator.classList.add('synced');
+    syncLabelEl.textContent = 'Synced';
   } else if (status === 'syncing') {
-    syncDot.classList.add('syncing');
-    syncLabel.textContent = 'Saving...';
+    syncLabelEl.textContent = 'Saving...';
   } else if (status === 'error') {
-    syncDot.classList.add('error');
-    syncLabel.textContent = 'Offline';
+    syncIndicator.classList.add('error');
+    syncLabelEl.textContent = 'Offline';
   } else {
-    syncLabel.textContent = 'Connecting...';
+    syncLabelEl.textContent = 'Connecting...';
   }
 }
 
@@ -137,6 +142,7 @@ function renderCalendarView() {
   monthLabel.textContent = getMonthLabel(currentYear, currentMonth);
   renderCalendar(calGrid, currentYear, currentMonth, routines, completions, handleToggle);
   renderLegend(calLegend, routines);
+  updateQuestPath();
 }
 
 function handleToggle(dateStr, routineId) {
@@ -144,9 +150,59 @@ function handleToggle(dateStr, routineId) {
   toggleCompletion(dateStr, routineId, currentlyDone);
 }
 
+// ---- Quest Path ----
+function updateQuestPath() {
+  const weeks = computeWeeklyProgress(currentYear, currentMonth, routines, completions);
+  checkpointsEl.innerHTML = '';
+
+  let completedWeeks = 0;
+  let goldCoins = 0;
+
+  weeks.forEach((w, i) => {
+    const cp = document.createElement('div');
+    cp.className = 'checkpoint';
+
+    const threshold = Math.ceil(w.expected / 2);
+    const isCompleted = w.expected > 0 && w.completed >= threshold;
+    const isGold = w.expected > 0 && w.completed >= w.expected;
+
+    if (isCompleted) { cp.classList.add('completed'); completedWeeks++; }
+    if (isGold) { cp.classList.add('has-gold'); goldCoins++; }
+
+    const coinDiv = document.createElement('div');
+    coinDiv.className = 'checkpoint-coin';
+    cp.appendChild(coinDiv);
+
+    const node = document.createElement('div');
+    node.className = 'checkpoint-node';
+    node.title = `Week ${i + 1}: ${w.completed}/${w.expected} done`;
+    cp.appendChild(node);
+
+    const label = document.createElement('span');
+    label.className = 'checkpoint-label';
+    label.textContent = `Wk${i + 1}`;
+    cp.appendChild(label);
+
+    checkpointsEl.appendChild(cp);
+  });
+
+  goldCountEl.textContent = goldCoins;
+
+  requestAnimationFrame(() => {
+    const totalCp = weeks.length;
+    if (totalCp > 0) {
+      const pathWidth = checkpointsEl.offsetWidth;
+      const progress = completedWeeks / totalCp;
+      questAvatar.style.left = (progress * (pathWidth - 40) + 4) + 'px';
+      pathFill.style.width = (progress * (pathWidth - 40)) + 'px';
+    }
+  });
+}
+
 // ---- Routines List ----
 function renderRoutinesList() {
   routinesList.innerHTML = '';
+  const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
   if (routines.length === 0) {
     routinesList.innerHTML = `
@@ -158,6 +214,8 @@ function renderRoutinesList() {
   }
 
   routines.forEach(r => {
+    const days = r.days || [];
+    const dayNames = days.map(d => DAY_LABELS[d]).join(', ');
     const card = document.createElement('div');
     card.className = 'routine-card';
     card.style.borderLeftColor = r.color;
@@ -166,11 +224,35 @@ function renderRoutinesList() {
       <div class="routine-info">
         <div class="routine-name">${escapeHtml(r.name)}</div>
         <div class="routine-desc">${escapeHtml(r.description || '')}</div>
+        <div class="routine-days">${dayNames || 'No days selected'}</div>
       </div>
-      <div class="routine-freq">${r.timesPerWeek}x/wk</div>
+      <div class="routine-freq">${days.length}x/wk</div>
     `;
     card.addEventListener('click', () => openEditRoutine(r));
     routinesList.appendChild(card);
+  });
+}
+
+// ---- Day Picker ----
+function setupDayPicker() {
+  dayPicker.querySelectorAll('.day-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const day = parseInt(btn.dataset.day);
+      const idx = selectedDays.indexOf(day);
+      if (idx === -1) {
+        selectedDays.push(day);
+      } else {
+        selectedDays.splice(idx, 1);
+      }
+      updateDayPickerUI();
+    });
+  });
+}
+
+function updateDayPickerUI() {
+  dayPicker.querySelectorAll('.day-btn').forEach(btn => {
+    const day = parseInt(btn.dataset.day);
+    btn.classList.toggle('active', selectedDays.includes(day));
   });
 }
 
@@ -183,6 +265,9 @@ function setupModal() {
   });
   routineForm.addEventListener('submit', handleSaveRoutine);
   routineDeleteBtn.addEventListener('click', handleDeleteRoutine);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeModal();
+  });
 }
 
 function openNewRoutine() {
@@ -190,11 +275,12 @@ function openNewRoutine() {
   document.getElementById('routine-id').value = '';
   document.getElementById('routine-name').value = '';
   document.getElementById('routine-description').value = '';
-  document.getElementById('routine-times').value = '7';
   routineDeleteBtn.style.display = 'none';
   selectedColor = COLORS[0];
   selectedIcon = ICONS[0];
+  selectedDays = [0, 1, 2, 3, 4, 5, 6];
   updatePickerSelection();
+  updateDayPickerUI();
   routineModal.classList.add('open');
 }
 
@@ -203,11 +289,12 @@ function openEditRoutine(routine) {
   document.getElementById('routine-id').value = routine.id;
   document.getElementById('routine-name').value = routine.name;
   document.getElementById('routine-description').value = routine.description || '';
-  document.getElementById('routine-times').value = routine.timesPerWeek;
   routineDeleteBtn.style.display = 'block';
   selectedColor = routine.color;
   selectedIcon = routine.icon;
+  selectedDays = [...(routine.days || [])];
   updatePickerSelection();
+  updateDayPickerUI();
   routineModal.classList.add('open');
 }
 
@@ -220,14 +307,14 @@ async function handleSaveRoutine(e) {
   const id = document.getElementById('routine-id').value;
   const name = document.getElementById('routine-name').value.trim();
   const description = document.getElementById('routine-description').value.trim();
-  const timesPerWeek = parseInt(document.getElementById('routine-times').value, 10);
+  const days = [...selectedDays].sort();
 
   if (!name) return;
 
   if (id) {
-    await updateRoutine(id, { name, description, timesPerWeek, color: selectedColor, icon: selectedIcon });
+    await updateRoutine(id, { name, description, days, color: selectedColor, icon: selectedIcon });
   } else {
-    await createRoutine({ name, description, timesPerWeek, color: selectedColor, icon: selectedIcon });
+    await createRoutine({ name, description, days, color: selectedColor, icon: selectedIcon });
   }
 
   closeModal();

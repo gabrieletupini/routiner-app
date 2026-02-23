@@ -4,19 +4,23 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Routiner</title>
-  <link rel="stylesheet" href="css/styles.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
 
-  <div class="sync-indicator">
-    <span class="sync-dot" id="sync-dot"></span>
+  <!-- Sync indicator -->
+  <div class="sync-indicator" id="sync-indicator">
+    <span class="sync-dot"></span>
     <span class="sync-label" id="sync-label">Connecting...</span>
   </div>
 
   <header>
-    <h1 class="logo">Routiner</h1>
+    <div class="header-left">
+      <h1 class="logo">Routiner</h1>
+    </div>
     <nav class="tabs">
       <button class="tab active" data-tab="calendar">Calendar</button>
       <button class="tab" data-tab="routines">Routines</button>
@@ -27,11 +31,72 @@
     <!-- CALENDAR TAB -->
     <section id="tab-calendar" class="tab-content active">
       <div class="month-nav">
-        <button id="prev-month" aria-label="Previous month">&larr;</button>
-        <span id="month-label"></span>
-        <button id="next-month" aria-label="Next month">&rarr;</button>
+        <button id="prev-month" class="nav-btn" aria-label="Previous month">&#9664;</button>
+        <span id="month-label" class="month-label"></span>
+        <button id="next-month" class="nav-btn" aria-label="Next month">&#9654;</button>
       </div>
+
+      <!-- Quest Progress -->
+      <div class="quest-section" id="quest-section">
+        <div class="quest-header">
+          <span class="quest-title">Monthly Progress</span>
+          <div class="gold-counter">
+            <span class="coin-icon"></span>
+            <span id="gold-count">0</span>
+          </div>
+        </div>
+        <div class="quest-path" id="quest-path">
+          <div class="path-line"></div>
+          <div class="path-line-fill" id="path-fill"></div>
+          <div class="quest-avatar" id="quest-avatar">
+            <svg viewBox="0 0 32 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M8 18 C8 18 6 38 7 40 L25 40 C26 38 24 18 24 18" fill="#3d6b35"/>
+              <path d="M8 18 C8 18 6 38 7 40 L25 40 C26 38 24 18 24 18" fill="url(#cloakShade)"/>
+              <ellipse cx="16" cy="14" rx="10" ry="12" fill="#4a7a3e"/>
+              <ellipse cx="16" cy="14" rx="10" ry="12" fill="url(#hoodShade)"/>
+              <ellipse cx="16" cy="17" rx="6" ry="5" fill="#1a1410"/>
+              <ellipse cx="16" cy="16.5" rx="5.5" ry="4.5" fill="#dbb588"/>
+              <circle cx="13.5" cy="16" r="1" fill="#1a1410"/>
+              <circle cx="18.5" cy="16" r="1" fill="#1a1410"/>
+              <circle cx="14" cy="15.5" r="0.4" fill="#fff" opacity="0.7"/>
+              <circle cx="19" cy="15.5" r="0.4" fill="#fff" opacity="0.7"/>
+              <rect x="26" y="4" width="2" height="36" rx="1" fill="#8a6a3a"/>
+              <circle cx="27" cy="4" r="3" fill="#d4a843" opacity="0.9"/>
+              <circle cx="27" cy="4" r="1.5" fill="#f0c850"/>
+              <ellipse cx="11" cy="41" rx="3" ry="2" fill="#5a3a1a"/>
+              <ellipse cx="21" cy="41" rx="3" ry="2" fill="#5a3a1a"/>
+              <rect x="9" y="26" width="14" height="2" rx="1" fill="#8a6a3a"/>
+              <rect x="14.5" y="25" width="3" height="4" rx="1" fill="#d4a843"/>
+              <defs>
+                <linearGradient id="cloakShade" x1="8" y1="18" x2="24" y2="40" gradientUnits="userSpaceOnUse">
+                  <stop offset="0" stop-color="#000" stop-opacity="0"/>
+                  <stop offset="1" stop-color="#000" stop-opacity="0.3"/>
+                </linearGradient>
+                <linearGradient id="hoodShade" x1="6" y1="2" x2="26" y2="26" gradientUnits="userSpaceOnUse">
+                  <stop offset="0" stop-color="#fff" stop-opacity="0.1"/>
+                  <stop offset="1" stop-color="#000" stop-opacity="0.2"/>
+                </linearGradient>
+              </defs>
+            </svg>
+          </div>
+          <div class="checkpoints" id="checkpoints"></div>
+        </div>
+      </div>
+
+      <!-- Legend -->
       <div class="calendar-legend" id="calendar-legend"></div>
+
+      <!-- Weekday headers -->
+      <div class="calendar-weekdays">
+        <div class="weekday">Sun</div>
+        <div class="weekday">Mon</div>
+        <div class="weekday">Tue</div>
+        <div class="weekday">Wed</div>
+        <div class="weekday">Thu</div>
+        <div class="weekday">Fri</div>
+        <div class="weekday">Sat</div>
+      </div>
+
       <div class="calendar-grid" id="calendar-grid"></div>
     </section>
 
@@ -42,39 +107,47 @@
         <button id="add-routine-btn" class="btn-add">+ Add Routine</button>
       </div>
       <div class="routines-list" id="routines-list"></div>
-
-      <!-- Add/Edit Routine Modal -->
-      <div class="modal-overlay" id="routine-modal">
-        <div class="modal">
-          <button class="modal-close" id="routine-modal-close">&times;</button>
-          <h3 id="routine-modal-title">New Routine</h3>
-          <form id="routine-form">
-            <input type="hidden" id="routine-id">
-
-            <label for="routine-name">Name</label>
-            <input type="text" id="routine-name" placeholder="e.g. Dental Routine" required>
-
-            <label for="routine-description">Description</label>
-            <textarea id="routine-description" placeholder="Brush teeth, floss, mouthwash..." rows="3"></textarea>
-
-            <label for="routine-times">Times per week</label>
-            <input type="number" id="routine-times" min="1" max="7" value="7" required>
-
-            <label>Color</label>
-            <div class="color-picker" id="color-picker"></div>
-
-            <label>Icon</label>
-            <div class="icon-picker" id="icon-picker"></div>
-
-            <div class="modal-actions">
-              <button type="button" class="btn-delete" id="routine-delete-btn" style="display:none;">Delete</button>
-              <button type="submit" class="btn-save">Save</button>
-            </div>
-          </form>
-        </div>
-      </div>
     </section>
   </main>
+
+  <!-- Add/Edit Routine Modal -->
+  <div class="modal-overlay" id="routine-modal">
+    <div class="modal">
+      <button class="modal-close" id="routine-modal-close">&times;</button>
+      <h3 id="routine-modal-title">New Routine</h3>
+      <form id="routine-form">
+        <input type="hidden" id="routine-id">
+
+        <label for="routine-name">Name</label>
+        <input type="text" id="routine-name" placeholder="e.g. Dental Routine" required>
+
+        <label for="routine-description">Description</label>
+        <textarea id="routine-description" placeholder="Brush teeth, floss, mouthwash..." rows="3"></textarea>
+
+        <label>Days</label>
+        <div class="day-picker" id="day-picker">
+          <button type="button" class="day-btn" data-day="0">Sun</button>
+          <button type="button" class="day-btn" data-day="1">Mon</button>
+          <button type="button" class="day-btn" data-day="2">Tue</button>
+          <button type="button" class="day-btn" data-day="3">Wed</button>
+          <button type="button" class="day-btn" data-day="4">Thu</button>
+          <button type="button" class="day-btn" data-day="5">Fri</button>
+          <button type="button" class="day-btn" data-day="6">Sat</button>
+        </div>
+
+        <label>Color</label>
+        <div class="color-picker" id="color-picker"></div>
+
+        <label>Icon</label>
+        <div class="icon-picker" id="icon-picker"></div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn-delete" id="routine-delete-btn" style="display:none;">Delete</button>
+          <button type="submit" class="btn-save">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
   <script type="module" src="js/app.js"></script>
 </body>
