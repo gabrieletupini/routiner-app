@@ -27,14 +27,13 @@ export function renderCalendar(container, year, month, routines, completions, on
     num.textContent = day;
     cell.appendChild(num);
 
-    // Only show non-allday routines in calendar cells, sorted by time of day
-    const timeOrder = { morning: 0, evening: 1, night: 2 };
+    // Routines scheduled for all 7 days go to the table below; others show in calendar
+    const timeOrder = { morning: 0, allday: 1, evening: 2, night: 3 };
     const dayRoutines = routines.filter(r => {
       const days = r.days || [];
-      const tod = r.timeOfDay || 'allday';
-      return days.includes(dayOfWeek) && tod !== 'allday';
+      return days.includes(dayOfWeek) && days.length < 7;
     }).sort((a, b) =>
-      (timeOrder[a.timeOfDay] ?? 1) - (timeOrder[b.timeOfDay] ?? 1)
+      (timeOrder[a.timeOfDay || 'allday'] ?? 1) - (timeOrder[b.timeOfDay || 'allday'] ?? 1)
     );
 
     if (dayRoutines.length > 0) {
@@ -100,10 +99,10 @@ export function getMonthLabel(year, month) {
   return date.toLocaleString('default', { month: 'long', year: 'numeric' });
 }
 
-// Render "All Day" routines as a table below the calendar
+// Render everyday (7-day) routines as a table below the calendar
 export function renderAlldayTable(container, year, month, routines, completions, onToggle) {
   container.innerHTML = '';
-  const alldayRoutines = routines.filter(r => (r.timeOfDay || 'allday') === 'allday');
+  const alldayRoutines = routines.filter(r => (r.days || []).length === 7);
   if (alldayRoutines.length === 0) return;
 
   const today = new Date();
