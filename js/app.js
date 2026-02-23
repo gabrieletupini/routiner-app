@@ -14,6 +14,9 @@ const ICONS = [
   '\u{1F9B7}', '\u{1F3CB}', '\u{1F4DA}', '\u{1F3B5}', '\u{1F9D8}',
   '\u{2615}', '\u{1F4A7}', '\u{1F48A}', '\u{1F333}', '\u{1F6B6}',
   '\u{1F9F9}', '\u{1F37D}', '\u{1F4BB}', '\u{1F6CC}', '\u{2B50}',
+  '\u{1F6BF}', '\u{1F9FC}', '\u{1F9D6}', '\u{1F3C3}', '\u{1F6B4}',
+  '\u{1F4DD}', '\u{1F4F5}', '\u{1F9CA}', '\u{1F95B}', '\u{1F34E}',
+  '\u{1F4AA}', '\u{1F9E0}', '\u{1F49C}', '\u{1F525}', '\u{1F30A}',
 ];
 
 let currentYear, currentMonth;
