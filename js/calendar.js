@@ -27,11 +27,14 @@ export function renderCalendar(container, year, month, routines, completions, on
     num.textContent = day;
     cell.appendChild(num);
 
-    // Only show routines scheduled for this day of week
+    // Only show routines scheduled for this day of week, sorted by time of day
+    const timeOrder = { morning: 0, allday: 1, evening: 2, night: 3 };
     const dayRoutines = routines.filter(r => {
       const days = r.days || [];
       return days.includes(dayOfWeek);
-    });
+    }).sort((a, b) =>
+      (timeOrder[a.timeOfDay || 'allday'] || 1) - (timeOrder[b.timeOfDay || 'allday'] || 1)
+    );
 
     if (dayRoutines.length > 0) {
       const checksWrap = document.createElement('div');

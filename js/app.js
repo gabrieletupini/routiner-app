@@ -35,6 +35,7 @@ const routineDeleteBtn = document.getElementById('routine-delete-btn');
 const colorPicker = document.getElementById('color-picker');
 const iconPicker = document.getElementById('icon-picker');
 const dayPicker = document.getElementById('day-picker');
+const timePicker = document.getElementById('time-picker');
 const questAvatar = document.getElementById('quest-avatar');
 const pathFill = document.getElementById('path-fill');
 const checkpointsEl = document.getElementById('checkpoints');
@@ -43,6 +44,11 @@ const goldCountEl = document.getElementById('gold-count');
 let selectedColor = COLORS[0];
 let selectedIcon = ICONS[0];
 let selectedDays = [0, 1, 2, 3, 4, 5, 6]; // all days by default
+let selectedTimeOfDay = 'allday';
+
+const TIME_ORDER = { morning: 0, allday: 1, evening: 2, night: 3 };
+const TIME_LABELS = { morning: 'Morning', allday: 'All Day', evening: 'Evening', night: 'Night' };
+const TIME_ICONS = { morning: '\u2600\uFE0F', allday: '\u{1F504}', evening: '\u{1F305}', night: '\u{1F319}' };
 
 // ---- Init ----
 function init() {
@@ -62,6 +68,7 @@ function init() {
   setupMonthNav();
   setupModal();
   setupDayPicker();
+  setupTimePicker();
   buildColorPicker();
   buildIconPicker();
 
@@ -215,9 +222,16 @@ function renderRoutinesList() {
     return;
   }
 
-  routines.forEach(r => {
+  const sorted = [...routines].sort((a, b) =>
+    (TIME_ORDER[a.timeOfDay || 'allday'] || 1) - (TIME_ORDER[b.timeOfDay || 'allday'] || 1)
+  );
+
+  sorted.forEach(r => {
     const days = r.days || [];
     const dayNames = days.map(d => DAY_LABELS[d]).join(', ');
+    const tod = r.timeOfDay || 'allday';
+    const todLabel = TIME_LABELS[tod] || 'All Day';
+    const todIcon = TIME_ICONS[tod] || '';
     const card = document.createElement('div');
     card.className = 'routine-card';
     card.style.borderLeftColor = r.color;
@@ -228,7 +242,10 @@ function renderRoutinesList() {
         <div class="routine-desc">${r.description || ''}</div>
         <div class="routine-days">${dayNames || 'No days selected'}</div>
       </div>
-      <div class="routine-freq">${days.length}x/wk</div>
+      <div class="routine-meta">
+        <span class="routine-time-badge">${todIcon} ${todLabel}</span>
+        <span class="routine-freq">${days.length}x/wk</span>
+      </div>
     `;
     card.addEventListener('click', () => openEditRoutine(r));
     routinesList.appendChild(card);
@@ -258,6 +275,22 @@ function updateDayPickerUI() {
   });
 }
 
+// ---- Time of Day Picker ----
+function setupTimePicker() {
+  timePicker.querySelectorAll('.time-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      selectedTimeOfDay = btn.dataset.time;
+      updateTimePickerUI();
+    });
+  });
+}
+
+function updateTimePickerUI() {
+  timePicker.querySelectorAll('.time-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.time === selectedTimeOfDay);
+  });
+}
+
 // ---- Modal ----
 function setupModal() {
   document.getElementById('add-routine-btn').addEventListener('click', openNewRoutine);
@@ -281,8 +314,10 @@ function openNewRoutine() {
   selectedColor = COLORS[0];
   selectedIcon = ICONS[0];
   selectedDays = [0, 1, 2, 3, 4, 5, 6];
+  selectedTimeOfDay = 'allday';
   updatePickerSelection();
   updateDayPickerUI();
+  updateTimePickerUI();
   routineModal.classList.add('open');
 }
 
@@ -295,8 +330,10 @@ function openEditRoutine(routine) {
   selectedColor = routine.color;
   selectedIcon = routine.icon;
   selectedDays = [...(routine.days || [])];
+  selectedTimeOfDay = routine.timeOfDay || 'allday';
   updatePickerSelection();
   updateDayPickerUI();
+  updateTimePickerUI();
   routineModal.classList.add('open');
 }
 
@@ -313,10 +350,11 @@ async function handleSaveRoutine(e) {
 
   if (!name) return;
 
+  const timeOfDay = selectedTimeOfDay;
   if (id) {
-    await updateRoutine(id, { name, description, days, color: selectedColor, icon: selectedIcon });
+    await updateRoutine(id, { name, description, days, timeOfDay, color: selectedColor, icon: selectedIcon });
   } else {
-    await createRoutine({ name, description, days, color: selectedColor, icon: selectedIcon });
+    await createRoutine({ name, description, days, timeOfDay, color: selectedColor, icon: selectedIcon });
   }
 
   closeModal();
