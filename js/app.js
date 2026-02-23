@@ -388,9 +388,9 @@ function sanitizeHtml(html) {
       el.replaceWith(...el.childNodes);
       return;
     }
-    // Strip event handler attributes
+    // Strip event handlers, style, and other unsafe attributes
     [...el.attributes].forEach(attr => {
-      if (attr.name.startsWith('on') || attr.name === 'srcdoc') {
+      if (attr.name.startsWith('on') || attr.name === 'srcdoc' || attr.name === 'style' || attr.name === 'class') {
         el.removeAttribute(attr.name);
       }
     });

@@ -495,23 +495,26 @@ main {
   overflow: hidden;
 }
 .routine-desc:empty { display: none; }
-/* Rich content inside routine cards */
+/* Rich content inside routine cards — !important overrides Notion inline styles */
 .routine-desc table {
-  width: 100%;
-  border-collapse: collapse;
+  width: 100% !important;
+  border-collapse: collapse !important;
   margin: 4px 0;
   font-size: 11px;
+  background: transparent !important;
 }
 .routine-desc th,
 .routine-desc td {
-  border: 1px solid var(--border);
-  padding: 3px 6px;
+  border: 1px solid var(--border) !important;
+  padding: 3px 6px !important;
   text-align: left;
+  background: transparent !important;
+  color: var(--text-secondary) !important;
 }
 .routine-desc th {
-  background: var(--bg-tertiary);
+  background: var(--bg-tertiary) !important;
   font-weight: 600;
-  color: var(--text-primary);
+  color: var(--text-primary) !important;
 }
 .routine-desc ul,
 .routine-desc ol {
@@ -626,21 +629,24 @@ main {
   pointer-events: none;
 }
 .rich-editor table {
-  width: 100%;
-  border-collapse: collapse;
+  width: 100% !important;
+  border-collapse: collapse !important;
   margin: 6px 0;
   font-size: 0.8rem;
+  background: transparent !important;
 }
 .rich-editor th,
 .rich-editor td {
-  border: 1px solid var(--border);
-  padding: 4px 8px;
+  border: 1px solid var(--border) !important;
+  padding: 4px 8px !important;
   text-align: left;
+  background: transparent !important;
+  color: var(--text-primary) !important;
 }
 .rich-editor th {
-  background: var(--bg-hover);
+  background: var(--bg-hover) !important;
   font-weight: 600;
-  color: var(--text-primary);
+  color: var(--text-primary) !important;
 }
 .rich-editor ul,
 .rich-editor ol {
