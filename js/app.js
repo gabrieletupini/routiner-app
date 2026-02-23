@@ -225,7 +225,7 @@ function renderRoutinesList() {
       <div class="routine-icon" style="background:${r.color}22">${r.icon}</div>
       <div class="routine-info">
         <div class="routine-name">${escapeHtml(r.name)}</div>
-        <div class="routine-desc">${escapeHtml(r.description || '')}</div>
+        <div class="routine-desc">${r.description || ''}</div>
         <div class="routine-days">${dayNames || 'No days selected'}</div>
       </div>
       <div class="routine-freq">${days.length}x/wk</div>
@@ -276,7 +276,7 @@ function openNewRoutine() {
   routineModalTitle.textContent = 'New Routine';
   document.getElementById('routine-id').value = '';
   document.getElementById('routine-name').value = '';
-  document.getElementById('routine-description').value = '';
+  document.getElementById('routine-description').innerHTML = '';
   routineDeleteBtn.style.display = 'none';
   selectedColor = COLORS[0];
   selectedIcon = ICONS[0];
@@ -290,7 +290,7 @@ function openEditRoutine(routine) {
   routineModalTitle.textContent = 'Edit Routine';
   document.getElementById('routine-id').value = routine.id;
   document.getElementById('routine-name').value = routine.name;
-  document.getElementById('routine-description').value = routine.description || '';
+  document.getElementById('routine-description').innerHTML = routine.description || '';
   routineDeleteBtn.style.display = 'block';
   selectedColor = routine.color;
   selectedIcon = routine.icon;
@@ -308,7 +308,7 @@ async function handleSaveRoutine(e) {
   e.preventDefault();
   const id = document.getElementById('routine-id').value;
   const name = document.getElementById('routine-name').value.trim();
-  const description = document.getElementById('routine-description').value.trim();
+  const description = sanitizeHtml(document.getElementById('routine-description').innerHTML);
   const days = [...selectedDays].sort();
 
   if (!name) return;
@@ -373,6 +373,32 @@ function rgbToHex(rgb) {
   const m = rgb.match(/(\d+),\s*(\d+),\s*(\d+)/);
   if (!m) return rgb;
   return '#' + [m[1], m[2], m[3]].map(x => parseInt(x).toString(16).padStart(2, '0')).join('');
+}
+
+function sanitizeHtml(html) {
+  const allowed = ['TABLE', 'THEAD', 'TBODY', 'TR', 'TH', 'TD',
+    'UL', 'OL', 'LI', 'P', 'BR', 'STRONG', 'B', 'EM', 'I',
+    'H1', 'H2', 'H3', 'H4', 'DIV', 'SPAN', 'A', 'COLGROUP', 'COL'];
+  const tmp = document.createElement('div');
+  tmp.innerHTML = html;
+  // Remove script/style/iframe tags and event attributes
+  tmp.querySelectorAll('script, style, iframe, object, embed').forEach(el => el.remove());
+  tmp.querySelectorAll('*').forEach(el => {
+    if (!allowed.includes(el.tagName)) {
+      el.replaceWith(...el.childNodes);
+      return;
+    }
+    // Strip event handler attributes
+    [...el.attributes].forEach(attr => {
+      if (attr.name.startsWith('on') || attr.name === 'srcdoc') {
+        el.removeAttribute(attr.name);
+      }
+    });
+  });
+  const result = tmp.innerHTML.trim();
+  // If empty or just <br>, return empty
+  if (!result || result === '<br>' || result === '<br/>') return '';
+  return result;
 }
 
 function escapeHtml(str) {

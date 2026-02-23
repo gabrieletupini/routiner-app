@@ -491,10 +491,34 @@ main {
 .routine-desc {
   font-size: 12px;
   color: var(--text-secondary);
-  white-space: nowrap;
+  line-height: 1.5;
   overflow: hidden;
-  text-overflow: ellipsis;
 }
+.routine-desc:empty { display: none; }
+/* Rich content inside routine cards */
+.routine-desc table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 4px 0;
+  font-size: 11px;
+}
+.routine-desc th,
+.routine-desc td {
+  border: 1px solid var(--border);
+  padding: 3px 6px;
+  text-align: left;
+}
+.routine-desc th {
+  background: var(--bg-tertiary);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.routine-desc ul,
+.routine-desc ol {
+  padding-left: 16px;
+  margin: 2px 0;
+}
+.routine-desc p { margin: 2px 0; }
 .routine-days {
   font-size: 11px;
   color: var(--text-muted);
@@ -573,7 +597,7 @@ main {
 }
 #routine-form label:first-of-type { margin-top: 0; }
 #routine-form input[type="text"],
-#routine-form textarea {
+.rich-editor {
   width: 100%;
   background: var(--bg-tertiary);
   border: 1px solid var(--border);
@@ -586,8 +610,44 @@ main {
   transition: border-color 0.15s;
 }
 #routine-form input:focus,
-#routine-form textarea:focus { border-color: var(--accent); }
-#routine-form textarea { resize: vertical; }
+.rich-editor:focus { border-color: var(--accent); }
+
+/* Rich text editor */
+.rich-editor {
+  min-height: 80px;
+  max-height: 240px;
+  overflow-y: auto;
+  line-height: 1.5;
+  cursor: text;
+}
+.rich-editor:empty::before {
+  content: attr(data-placeholder);
+  color: var(--text-muted);
+  pointer-events: none;
+}
+.rich-editor table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 6px 0;
+  font-size: 0.8rem;
+}
+.rich-editor th,
+.rich-editor td {
+  border: 1px solid var(--border);
+  padding: 4px 8px;
+  text-align: left;
+}
+.rich-editor th {
+  background: var(--bg-hover);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.rich-editor ul,
+.rich-editor ol {
+  padding-left: 18px;
+  margin: 4px 0;
+}
+.rich-editor p { margin: 4px 0; }
 
 /* ========== DAY PICKER ========== */
 .day-picker {
