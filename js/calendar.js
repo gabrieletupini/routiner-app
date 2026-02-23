@@ -27,13 +27,14 @@ export function renderCalendar(container, year, month, routines, completions, on
     num.textContent = day;
     cell.appendChild(num);
 
-    // Only show routines scheduled for this day of week, sorted by time of day
-    const timeOrder = { morning: 0, allday: 1, evening: 2, night: 3 };
+    // Only show non-allday routines in calendar cells, sorted by time of day
+    const timeOrder = { morning: 0, evening: 1, night: 2 };
     const dayRoutines = routines.filter(r => {
       const days = r.days || [];
-      return days.includes(dayOfWeek);
+      const tod = r.timeOfDay || 'allday';
+      return days.includes(dayOfWeek) && tod !== 'allday';
     }).sort((a, b) =>
-      (timeOrder[a.timeOfDay || 'allday'] || 1) - (timeOrder[b.timeOfDay || 'allday'] || 1)
+      (timeOrder[a.timeOfDay] ?? 1) - (timeOrder[b.timeOfDay] ?? 1)
     );
 
     if (dayRoutines.length > 0) {
@@ -97,6 +98,60 @@ export function renderLegend(container, routines) {
 export function getMonthLabel(year, month) {
   const date = new Date(year, month);
   return date.toLocaleString('default', { month: 'long', year: 'numeric' });
+}
+
+// Render "All Day" routines as a table below the calendar
+export function renderAlldayTable(container, year, month, routines, completions, onToggle) {
+  container.innerHTML = '';
+  const alldayRoutines = routines.filter(r => (r.timeOfDay || 'allday') === 'allday');
+  if (alldayRoutines.length === 0) return;
+
+  const today = new Date();
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+  const isCurrentMonth = today.getFullYear() === year && today.getMonth() === month;
+
+  const section = document.createElement('div');
+  section.className = 'allday-section';
+
+  const header = document.createElement('div');
+  header.className = 'allday-header';
+  header.textContent = 'Daily Routines';
+  section.appendChild(header);
+
+  alldayRoutines.forEach(r => {
+    const row = document.createElement('div');
+    row.className = 'allday-row';
+
+    const done = isCurrentMonth && completions[todayStr] && completions[todayStr][r.id];
+
+    row.innerHTML = `
+      <div class="allday-icon" style="background:${r.color}22; color:${r.color}">${r.icon}</div>
+      <div class="allday-info">
+        <div class="allday-name">${escapeHtml(r.name)}</div>
+        <div class="allday-desc">${r.description || ''}</div>
+      </div>
+    `;
+
+    if (isCurrentMonth) {
+      const checkBtn = document.createElement('button');
+      checkBtn.className = 'allday-check' + (done ? ' done' : '');
+      checkBtn.style.setProperty('--check-color', r.color);
+      checkBtn.innerHTML = done ? '&#10003;' : '';
+      checkBtn.title = done ? 'Completed today' : 'Mark as done today';
+      checkBtn.addEventListener('click', () => onToggle(todayStr, r.id));
+      row.appendChild(checkBtn);
+    }
+
+    section.appendChild(row);
+  });
+
+  container.appendChild(section);
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
 }
 
 // Compute weekly progress for quest path

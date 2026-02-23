@@ -3,7 +3,7 @@ import {
   subscribeToRoutines, createRoutine, updateRoutine, deleteRoutine,
   subscribeToCompletions, toggleCompletion
 } from './firebase.js';
-import { renderCalendar, renderLegend, getMonthLabel, computeWeeklyProgress } from './calendar.js';
+import { renderCalendar, renderLegend, renderAlldayTable, getMonthLabel, computeWeeklyProgress } from './calendar.js';
 
 const COLORS = [
   '#7c6ff7', '#3b82f6', '#06b6d4', '#34d399', '#a3e635',
@@ -29,6 +29,7 @@ let unsubCompletions = null;
 const syncIndicator = document.getElementById('sync-indicator');
 const syncLabelEl = document.getElementById('sync-label');
 const calGrid = document.getElementById('calendar-grid');
+const alldayContainer = document.getElementById('allday-routines');
 const calLegend = document.getElementById('calendar-legend');
 const monthLabel = document.getElementById('month-label');
 const routinesList = document.getElementById('routines-list');
@@ -155,6 +156,7 @@ function renderAll() {
 function renderCalendarView() {
   monthLabel.textContent = getMonthLabel(currentYear, currentMonth);
   renderCalendar(calGrid, currentYear, currentMonth, routines, completions, handleToggle);
+  renderAlldayTable(alldayContainer, currentYear, currentMonth, routines, completions, handleToggle);
   renderLegend(calLegend, routines);
   updateQuestPath();
 }
