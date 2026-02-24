@@ -106,45 +106,134 @@ export function renderAlldayTable(container, year, month, routines, completions,
   if (alldayRoutines.length === 0) return;
 
   const today = new Date();
-  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
   const isCurrentMonth = today.getFullYear() === year && today.getMonth() === month;
+
+  // Compute current week dates (Sun–Sat containing today)
+  const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const weekDates = [];
+  if (isCurrentMonth) {
+    const sun = new Date(today);
+    sun.setDate(today.getDate() - today.getDay());
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(sun);
+      d.setDate(sun.getDate() + i);
+      const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      weekDates.push({ d, dateStr, label: DAY_LABELS[i] });
+    }
+  }
 
   const section = document.createElement('div');
   section.className = 'allday-section';
 
-  const header = document.createElement('div');
-  header.className = 'allday-header';
-  header.textContent = 'Daily Routines';
-  section.appendChild(header);
+  // Header: title on left, day labels on right
+  const headerRow = document.createElement('div');
+  headerRow.className = 'allday-header-row';
 
+  const headerTitle = document.createElement('div');
+  headerTitle.className = 'allday-header-title';
+  headerTitle.textContent = 'Daily Routines';
+  headerRow.appendChild(headerTitle);
+
+  if (isCurrentMonth) {
+    const weekLabels = document.createElement('div');
+    weekLabels.className = 'allday-week-labels';
+    weekDates.forEach(({ d, label }) => {
+      const lbl = document.createElement('div');
+      lbl.className = 'allday-day-label' + (d.toDateString() === today.toDateString() ? ' today' : '');
+      lbl.innerHTML = `<span class="allday-day-name">${label}</span><span class="allday-day-num">${d.getDate()}</span>`;
+      weekLabels.appendChild(lbl);
+    });
+    headerRow.appendChild(weekLabels);
+  }
+  section.appendChild(headerRow);
+
+  // Routine rows
   alldayRoutines.forEach(r => {
     const row = document.createElement('div');
     row.className = 'allday-row';
 
-    const done = isCurrentMonth && completions[todayStr] && completions[todayStr][r.id];
+    // Left: icon + name + optional info button
+    const left = document.createElement('div');
+    left.className = 'allday-left';
 
-    row.innerHTML = `
-      <div class="allday-icon" style="background:${r.color}22; color:${r.color}">${r.icon}</div>
-      <div class="allday-info">
-        <div class="allday-name">${escapeHtml(r.name)}</div>
-        <div class="allday-desc">${r.description || ''}</div>
-      </div>
-    `;
+    const icon = document.createElement('div');
+    icon.className = 'allday-icon';
+    icon.style.background = `${r.color}22`;
+    icon.textContent = r.icon;
+    left.appendChild(icon);
 
+    const name = document.createElement('span');
+    name.className = 'allday-name';
+    name.textContent = r.name;
+    left.appendChild(name);
+
+    if (r.description) {
+      const infoBtn = document.createElement('button');
+      infoBtn.className = 'allday-info-btn';
+      infoBtn.title = 'View description';
+      infoBtn.textContent = 'i';
+      infoBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        showDescPopover(infoBtn, r);
+      });
+      left.appendChild(infoBtn);
+    }
+
+    row.appendChild(left);
+
+    // Right: 7-day week checkmarks
     if (isCurrentMonth) {
-      const checkBtn = document.createElement('button');
-      checkBtn.className = 'allday-check' + (done ? ' done' : '');
-      checkBtn.style.setProperty('--check-color', r.color);
-      checkBtn.innerHTML = done ? '&#10003;' : '';
-      checkBtn.title = done ? 'Completed today' : 'Mark as done today';
-      checkBtn.addEventListener('click', () => onToggle(todayStr, r.id));
-      row.appendChild(checkBtn);
+      const weekChecks = document.createElement('div');
+      weekChecks.className = 'allday-week-checks';
+      weekDates.forEach(({ d, dateStr }) => {
+        const done = completions[dateStr] && completions[dateStr][r.id];
+        const btn = document.createElement('button');
+        btn.className = 'allday-check' + (done ? ' done' : '') + (d.toDateString() === today.toDateString() ? ' is-today' : '');
+        btn.style.setProperty('--check-color', r.color);
+        btn.innerHTML = done ? '&#10003;' : '';
+        btn.addEventListener('click', () => onToggle(dateStr, r.id));
+        weekChecks.appendChild(btn);
+      });
+      row.appendChild(weekChecks);
     }
 
     section.appendChild(row);
   });
 
   container.appendChild(section);
+}
+
+function showDescPopover(anchor, routine) {
+  document.querySelector('.allday-popover')?.remove();
+
+  const popover = document.createElement('div');
+  popover.className = 'allday-popover';
+  popover.innerHTML = `
+    <div class="allday-popover-header">
+      <span>${routine.icon} ${escapeHtml(routine.name)}</span>
+      <button class="allday-popover-close">&times;</button>
+    </div>
+    <div class="allday-popover-body">${routine.description}</div>
+  `;
+  document.body.appendChild(popover);
+
+  // Position below the anchor button
+  const rect = anchor.getBoundingClientRect();
+  const top = rect.bottom + window.scrollY + 6;
+  const left = Math.min(
+    Math.max(8, rect.left + window.scrollX - 120),
+    window.innerWidth - popover.offsetWidth - 8
+  );
+  popover.style.top = `${top}px`;
+  popover.style.left = `${left}px`;
+
+  popover.querySelector('.allday-popover-close').addEventListener('click', () => popover.remove());
+  setTimeout(() => {
+    document.addEventListener('click', function handler() {
+      popover.remove();
+      document.removeEventListener('click', handler);
+    });
+  }, 0);
 }
 
 function escapeHtml(str) {
